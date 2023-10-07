@@ -1,9 +1,12 @@
 import './App.css'
+import QRyptionForm from './QRyptionForm';
+import Navbar from './navbar';
 
 function App() {
   return (
     <>
-<h1>Hey guys from app.jsx</h1>
+    <Navbar />
+      <QRyptionForm />
     </>
   )
 }
