@@ -25,14 +25,11 @@ Run backend
 ```bash
   cd backend 
   npm i
+  nodemon script.js
 ```
 
-For generating QR code, enter the plain text and run below command, a new QR code will be created
-```bash
-  node script.js
-```
-
-For testing it, scan QR code and enter the encrypted text and run the below command
+For generating QR code, enter the plain text in frontend and click on generate, refresh page to view it
+For testing it, scan QR code and enter the encrypted text and run the below command (backend/test.js)
 ```bash
   node test.js
 ```
