@@ -20,6 +20,23 @@ Run frontend
   npm run dev
 ```
 
+Run backend
+
+```bash
+  cd backend 
+  npm i
+```
+
+For generating QR code, enter the plain text and run below command, a new QR code will be created
+```bash
+  node script.js
+```
+
+For testing it, scan QR code and enter the encrypted text and run the below command
+```bash
+  node test.js
+```
+
 
 ## Basic System Design
 
