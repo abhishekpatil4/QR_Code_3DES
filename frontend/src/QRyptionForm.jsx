@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import './App.css'
 const QRyptionForm = () => {
   const [receiverID, setReceiverID] = useState('');
   const [link, setLink] = useState('');
@@ -10,10 +10,9 @@ const QRyptionForm = () => {
   };
 
   return (
-    <div className="container ">
-      <h1 className="mb-4">QRyption</h1>
+    <div className="container form-div shadow p-3 mb-5 bg-body-tertiary rounded">
       <div className="mb-3">
-        <label htmlFor="receiverID" className="form-label">Receiver ID</label>
+        <label htmlFor="receiverID" className="form-label"><b>Receiver ID</b></label>
         <input
           type="text"
           className="form-control"
@@ -23,7 +22,7 @@ const QRyptionForm = () => {
         />
       </div>
       <div className="mb-3">
-        <label htmlFor="link" className="form-label">Link</label>
+        <label htmlFor="link" className="form-label"><b>Link</b></label>
         <input
           type="text"
           className="form-control"
