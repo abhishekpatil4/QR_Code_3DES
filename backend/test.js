@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // Encrypted text to be decrypted
-const encryptedText = 'JQovl0jwhl8='; // Replace with the actual encrypted text
+const encryptedText = 'g24tDtroEiY='; // Replace with the actual encrypted text
 
 // Secret key for 3DES decryption (must be 24 bytes)
 const decryptionKey = Buffer.from('YourSecretEncryptionKey'.padEnd(24, '\0'));
