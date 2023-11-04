@@ -6,3 +6,16 @@ a{
 #chkStatusDiv{
   margin-top: 4rem;
 }
+
+.navLinks{
+  background-color: rgb(253, 185, 185);
+}
+
+.navLinks:hover{
+  background-color: rgb(251, 130, 130);
+}
+
+#title u{
+  text-decoration-color: rgb(220,53,68);
+  text-underline-offset: 15px;
+}

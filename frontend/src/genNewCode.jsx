@@ -1,6 +1,6 @@
 function GenerateNewQRCode(){
     return <>
-    <h1>randa</h1>
+    
     </>
 }
 
