@@ -1,7 +1,7 @@
 function CheckStatus() {
     return <>
     <div>
-        hi
+        <h1>check status</h1>
     </div>
     </>
 }
