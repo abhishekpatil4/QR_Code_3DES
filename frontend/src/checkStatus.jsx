@@ -32,7 +32,7 @@ function CheckStatus() {
               <tbody>
                 {data.map((val, index) => (
                   <tr key={index}>
-                    <th scope="row">{val.orderID}</th>
+                    <td scope="row">{val.orderID}</td>
                     <td>{val.ReceiverID}</td>
                     <td>{val.status ? 'True' : 'False'}</td>
                   </tr>

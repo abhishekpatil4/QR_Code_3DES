@@ -7,6 +7,8 @@ This projects adds an extra layer of security to QR codes by encrypting the plai
 
 <img width="1680" alt="Screenshot 2023-11-05 at 12 49 04 AM" src="https://github.com/abhishekpatil4/QR_Code_3DES/assets/83769052/539d6f1b-6299-4df3-b05e-22b164cf0034">
 
+
+
 Clone the repo
 
 ```bash
