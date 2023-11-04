@@ -43,7 +43,7 @@ function CheckStatus() {
     }
 
     return <>
-        <div className="text-center">
+        <div className="text-center" id="chkStatusDiv">
             <table class="table table-striped container">
                 <thead>
                     <tr>
