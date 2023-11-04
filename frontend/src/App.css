@@ -9,6 +9,7 @@ a{
 
 .navLinks{
   background-color: rgb(253, 185, 185);
+  margin: 0 10rem 0 10rem;
 }
 
 .navLinks:hover{
