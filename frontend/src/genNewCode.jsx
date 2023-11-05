@@ -11,13 +11,13 @@ const handleGenerate = async () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ orderID }),
+      body: JSON.stringify({ orderID, receiverID }),
     });
   
     if (response.ok) {
-      console.log('Link sent for encryption');
+      console.log('Data sent to backend');
     } else {
-      console.error('Failed to send orderID for encryption');
+      console.error('Failed to send data to backend');
       // Handle errors if the request is not successful.
     }
   };
