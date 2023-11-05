@@ -1,11 +1,17 @@
+const express = require('express');
+const bodyParser = require('body-parser');
 const crypto = require('crypto');
 const qr = require('qrcode');
+const cors = require('cors');
 const fs = require('fs');
 
-// Input string to be encrypted
-const inputString = 'abhi';
+const app = express();
+const port = 3000;
 
-// Encrypt the input string using 3DES
+app.use(cors()); 
+app.use(bodyParser.json());
+
+// 3DES encryption function
 function encrypt3DES(input, key) {
   const cipher = crypto.createCipheriv('des-ede3', key, '');
   let encrypted = cipher.update(input, 'utf8', 'base64');
@@ -13,20 +19,28 @@ function encrypt3DES(input, key) {
   return encrypted;
 }
 
-// Secret key for 3DES encryption (must be 24 bytes)
-const encryptionKey = Buffer.from('YourSecretEncryptionKey'.padEnd(24, '\0'));
+app.post('/api/encrypt-link', (req, res) => {
+    const orderID = req.body.orderID; // Access the correct property
+    console.log('Data from frontend: ', orderID);
+    const encryptionKey = Buffer.from('YourSecretEncryptionKey'.padEnd(24, '\0'));
+    const encryptedLink = encrypt3DES(orderID, encryptionKey);
+  
+    // Generate a QR code from the encrypted link
+    qr.toFile('../frontend/public/encrypted_qr.png', encryptedLink, {
+      errorCorrectionLevel: 'H', // High error correction
+      type: 'png', // PNG format
+    }, (err) => {
+      if (err) {
+        console.error('Error generating QR code:', err);
+        res.status(500).json({ error: 'Error generating QR code' });
+      } else {
+        console.log('QR code generated as encrypted_qr.png');
+        res.json({ message: 'Link encrypted and QR code generated successfully' });
+      }
+    });
+  });
+  
 
-// Encrypt the input string
-const encryptedString = encrypt3DES(inputString, encryptionKey);
-
-// Generate a QR code from the encrypted string
-qr.toFile('encrypted_qr.png', encryptedString, {
-  errorCorrectionLevel: 'H', // High error correction
-  type: 'png', // PNG format
-}, (err) => {
-  if (err) {
-    console.error('Error generating QR code:', err);
-  } else {
-    console.log('QR code generated as encrypted_qr.png');
-  }
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });

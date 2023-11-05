@@ -4,10 +4,30 @@ function GenerateNewQRCode() {
 const [orderID, setOrderID] = useState("");
 const [receiverID, setReceiverID] = useState("");
 
+const handleGenerate = async () => {
+    // Send the orderID to your Node.js server for encryption
+    const response = await fetch('http://localhost:3000/api/encrypt-link', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderID }),
+    });
+  
+    if (response.ok) {
+      console.log('Link sent for encryption');
+    } else {
+      console.error('Failed to send orderID for encryption');
+      // Handle errors if the request is not successful.
+    }
+  };
+  
+
 const handleSubmit = (e) => {
     e.preventDefault();
 
     console.log(orderID + ' ' + receiverID);
+    handleGenerate();
 }
 
     return <>
