@@ -21,20 +21,20 @@ const orderSchema = new mongoose.Schema({
   secretKey: String,
   randomStr: String,
   received: Boolean,
-  imageData: Buffer,
+  imageData: String,
   encryptedData: String
 });
 
 const Order = mongoose.model('Order', orderSchema);
 
-function insertData(order_id, receiver_id, secret_key, random_str, imageDataBuffer, encryptedLink) {
+function insertData(order_id, receiver_id, secret_key, random_str, imagePath, encryptedLink) {
   const newOrder = new Order({
     orderID: order_id,
     receiverID: receiver_id,
     secretKey: secret_key,
     randomStr: random_str,
     received: false,
-    imageData: imageDataBuffer,
+    imageData: imagePath,
     encryptedData: encryptedLink
   });
 
@@ -103,7 +103,8 @@ app.post('/api/encrypt-link', (req, res) => {
   const encryptedLink = encrypt3DES(randomStr, encryptionKey);
 
   // Generate a QR code from the encrypted link
-  qr.toFile('../frontend/public/' + orderID + '_qr.png', encryptedLink, {
+  const path = '../frontend/public/' + orderID + '_qr.png';
+  qr.toFile(path, encryptedLink, {
     errorCorrectionLevel: 'H', // High error correction
     type: 'png', // PNG format
   }, (err) => {
@@ -113,22 +114,21 @@ app.post('/api/encrypt-link', (req, res) => {
     } else {
       console.log('QR code generated as encrypted_qr.png');
       res.json({ message: 'Link encrypted and QR code generated successfully' });
-      const imageDataBuffer = fs.readFileSync('../frontend/public/' + orderID + '_qr.png');
-      insertData(orderID, receiverID, secretkey, randomStr, imageDataBuffer, encryptedLink);
+      // const imageDataBuffer = fs.readFileSync('../frontend/public/' + orderID + '_qr.png');
+      // insertData(orderID, receiverID, secretkey, randomStr, imageDataBuffer, encryptedLink);
+      const localPath = "../public/" + orderID + '_qr.png';
+      insertData(orderID, receiverID, secretkey, randomStr, localPath, encryptedLink);
     }
   });
 });
 
 app.get('/api/get-image/:orderID', async (req, res) => {
   const orderID = req.params.orderID;
-
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
-
     if (!order) {
       return res.status(404).send('Order not found');
     }
-
     // Set the appropriate content type based on the image format (e.g., 'image/jpeg')
     console.log('Fetched image from db');
     res.contentType('image/jpeg'); // Change 'image/jpeg' based on your image format
@@ -141,15 +141,12 @@ app.get('/api/get-image/:orderID', async (req, res) => {
 
 app.post('/api/update-status', async (req, res) => {
   const { orderID, randomStr } = req.body;
-
   try {
     // Find the order by orderID
     const order = await Order.findOne({ orderID }).exec();
-
     if (!order) {
       return res.status(404).send('Order not found');
     }
-
     // Check if randomStr matches
     if (order.randomStr === randomStr) {
       // Update the status to true
@@ -168,22 +165,13 @@ app.post('/api/update-status', async (req, res) => {
 
 app.get('/api/all-orders', async (req, res) => {
   try {
-    // Use the `await` keyword to asynchronously fetch all orders from the database
-    const orders = await Order.find().exec();
-    
-    // Send the retrieved orders as a JSON response
+    let orders = await Order.find().exec();
     res.json(orders);
   } catch (error) {
-    // Handle any errors that may occur during the database query
     console.error('Error retrieving all orders:', error);
-    
-    // Respond with a 500 Internal Server Error and an error message
     res.status(500).send('Error retrieving all orders');
   }
 });
-
-
-
 
 module.exports = { getOrderDataByOrderID, Order };
 

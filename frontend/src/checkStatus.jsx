@@ -42,7 +42,6 @@ function CheckStatus() {
         );
     }
     
-
     return (
         <div>
             <div className="text-center" id="chkStatusDiv">
@@ -55,18 +54,12 @@ function CheckStatus() {
                                 <th scope="col">Order ID</th>
                                 <th scope="col">Receiver ID</th>
                                 <th scope="col">Status</th>
-                                {/* <th scope="col">QR Code</th> */}
                             </tr>
                         </thead>
                         {getData()}
                     </table>
                 )}
             </div>
-            {/* <div>
-                {imageData && (
-                    <img src={imageData} alt="Image" />
-                )}
-            </div> */}
         </div>
 
     );
