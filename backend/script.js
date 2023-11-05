@@ -21,17 +21,21 @@ const orderSchema = new mongoose.Schema({
   secretKey: String,
   randomStr: String,
   received: Boolean,
+  imageData: Buffer,
+  encryptedData: String
 });
 
 const Order = mongoose.model('Order', orderSchema);
 
-function insertData(order_id, receiver_id, secret_key, random_str) {
+function insertData(order_id, receiver_id, secret_key, random_str, imageDataBuffer, encryptedLink) {
   const newOrder = new Order({
     orderID: order_id,
     receiverID: receiver_id,
     secretKey: secret_key,
     randomStr: random_str,
     received: false,
+    imageData: imageDataBuffer,
+    encryptedData: encryptedLink
   });
 
   newOrder.save()
@@ -95,13 +99,11 @@ app.post('/api/encrypt-link', (req, res) => {
   console.log('Data generated at backend => Secretkey: ', secretkey);
   console.log('Data generated at backend => RandomStr: ', randomStr);
 
-  insertData(orderID, receiverID, secretkey, randomStr);
-
   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
   const encryptedLink = encrypt3DES(randomStr, encryptionKey);
 
   // Generate a QR code from the encrypted link
-  qr.toFile('../frontend/public/encrypted_qr.png', encryptedLink, {
+  qr.toFile('../frontend/public/' + orderID + '_qr.png', encryptedLink, {
     errorCorrectionLevel: 'H', // High error correction
     type: 'png', // PNG format
   }, (err) => {
@@ -111,10 +113,33 @@ app.post('/api/encrypt-link', (req, res) => {
     } else {
       console.log('QR code generated as encrypted_qr.png');
       res.json({ message: 'Link encrypted and QR code generated successfully' });
+      const imageDataBuffer = fs.readFileSync('../frontend/public/' + orderID + '_qr.png');
+      insertData(orderID, receiverID, secretkey, randomStr, imageDataBuffer, encryptedLink);
     }
   });
 });
 
+app.get('/api/get-image/:orderID', async (req, res) => {
+  const orderID = req.params.orderID;
+
+  try {
+    const order = await Order.findOne({ orderID: orderID }).exec();
+
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+
+    // Set the appropriate content type based on the image format (e.g., 'image/jpeg')
+    res.contentType('image/jpeg'); // Change 'image/jpeg' based on your image format
+    res.send(order.imageData);
+  } catch (error) {
+    console.error('Error retrieving order with image:', error);
+    res.status(500).send('Error retrieving order with image');
+  }
+});
+
+
+module.exports = { getOrderDataByOrderID, Order };
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
