@@ -130,6 +130,7 @@ app.get('/api/get-image/:orderID', async (req, res) => {
     }
 
     // Set the appropriate content type based on the image format (e.g., 'image/jpeg')
+    console.log('Fetched image from db');
     res.contentType('image/jpeg'); // Change 'image/jpeg' based on your image format
     res.send(order.imageData);
   } catch (error) {
@@ -137,6 +138,51 @@ app.get('/api/get-image/:orderID', async (req, res) => {
     res.status(500).send('Error retrieving order with image');
   }
 });
+
+app.post('/api/update-status', async (req, res) => {
+  const { orderID, randomStr } = req.body;
+
+  try {
+    // Find the order by orderID
+    const order = await Order.findOne({ orderID }).exec();
+
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+
+    // Check if randomStr matches
+    if (order.randomStr === randomStr) {
+      // Update the status to true
+      order.received = true;
+      await order.save(); // Save the updated order
+      return res.send('Status updated to true');
+    } else {
+      console.error('RandomStr does not match.');
+      return res.status(400).send('RandomStr does not match.');
+    }
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).send('Error updating status');
+  }
+});
+
+app.get('/api/all-orders', async (req, res) => {
+  try {
+    // Use the `await` keyword to asynchronously fetch all orders from the database
+    const orders = await Order.find().exec();
+    
+    // Send the retrieved orders as a JSON response
+    res.json(orders);
+  } catch (error) {
+    // Handle any errors that may occur during the database query
+    console.error('Error retrieving all orders:', error);
+    
+    // Respond with a 500 Internal Server Error and an error message
+    res.status(500).send('Error retrieving all orders');
+  }
+});
+
+
 
 
 module.exports = { getOrderDataByOrderID, Order };
