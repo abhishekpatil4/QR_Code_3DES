@@ -32,13 +32,6 @@ Run backend
   nodemon script.js
 ```
 
-For generating QR code, enter the plain text in frontend and click on generate, refresh page to view it
-For testing it, scan QR code and enter the encrypted text and run the below command (backend/test.js)
-```bash
-  node test.js
-```
-
-
 ## Basic System Design
 
 ![qr_code_flow](https://github.com/abhishekpatil4/QR_Code_3DES/assets/83769052/8ee5792b-45a9-493c-997e-76168a5b0415)
