@@ -5,7 +5,15 @@ const qr = require('qrcode');
 const cors = require('cors');
 const fs = require('fs');
 const mongoose = require('mongoose');
+const { encrypt3DES, decrypt3DES } = require('./3des');
 
+//express
+const app = express();
+const port = 3000;
+app.use(cors());
+app.use(bodyParser.json());
+
+//mongoDB
 const uri = "mongodb+srv://abhishek:JJ0l5I2i8WzgTeQF@cluster0.7k55j13.mongodb.net/qrcryption?retryWrites=true&w=majority";
 mongoose.connect(uri)
   .then(() => {
@@ -49,12 +57,7 @@ function insertData(order_id, receiver_id, secret_key, random_str, imagePath, en
 
 }
 
-const app = express();
-const port = 3000;
-
-app.use(cors());
-app.use(bodyParser.json());
-
+//functions and API endpoints
 async function getOrderDataByOrderID(orderID) {
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
@@ -67,22 +70,6 @@ async function getOrderDataByOrderID(orderID) {
   } catch (error) {
     console.error('Error retrieving order data:', error);
   }
-}
-
-// 3DES encryption function
-function encrypt3DES(input, key) {
-  const cipher = crypto.createCipheriv('des-ede3', key, '');
-  let encrypted = cipher.update(input, 'utf8', 'base64');
-  encrypted += cipher.final('base64');
-  return encrypted;
-}
-
-// 3DES decryption function
-function decrypt3DES(encrypted, key) {
-  const decipher = crypto.createDecipheriv('des-ede3', key, '');
-  let decrypted = decipher.update(encrypted, 'base64', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
 }
 
 function generateRandomString(length) {
@@ -98,7 +85,7 @@ function generateRandomString(length) {
 }
 
 app.post('/api/encrypt-link', (req, res) => {
-  const orderID = req.body.orderID; // Access the correct property
+  const orderID = req.body.orderID; 
   const receiverID = req.body.receiverID;
   
   const secretkey = generateRandomString(10);
@@ -107,7 +94,7 @@ app.post('/api/encrypt-link', (req, res) => {
   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
   const encryptedLink = encrypt3DES(randomStr, encryptionKey);
 
-  // Generate a QR code from the encrypted link
+  //QR-Code Generation
   const path = '../frontend/public/' + orderID + '_qr.png';
   qr.toFile(path, encryptedLink, {
     errorCorrectionLevel: 'H', // High error correction
@@ -132,9 +119,8 @@ app.get('/api/get-image/:orderID', async (req, res) => {
     if (!order) {
       return res.status(404).send('Order not found');
     }
-    // Set the appropriate content type based on the image format (e.g., 'image/jpeg')
     console.log('Fetched image from db');
-    res.contentType('image/jpeg'); // Change 'image/jpeg' based on your image format
+    res.contentType('image/jpeg');
     res.send(order.imageData);
   } catch (error) {
     console.error('Error retrieving order with image:', error);
@@ -145,16 +131,13 @@ app.get('/api/get-image/:orderID', async (req, res) => {
 app.post('/api/update-status', async (req, res) => {
   const { orderID, randomStr } = req.body;
   try {
-    // Find the order by orderID
     const order = await Order.findOne({ orderID }).exec();
     if (!order) {
       return res.status(404).send('Order not found');
     }
-    // Check if randomStr matches
     if (order.randomStr === randomStr) {
-      // Update the status to true
       order.received = true;
-      await order.save(); // Save the updated order
+      await order.save(); 
       return res.send('Status updated to true');
     } else {
       console.error('RandomStr does not match.');

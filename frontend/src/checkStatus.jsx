@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import config from "./index.js";
+import config from "./config/index.js";
 
 function CheckStatus() {
     const [orders, setOrders] = useState([]);

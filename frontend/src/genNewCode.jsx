@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import config from "./index.js";
+import config from "./config/index.js";
 
 function GenerateNewQRCode() {
   const [orderID, setOrderID] = useState("");
