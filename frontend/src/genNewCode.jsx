@@ -32,10 +32,8 @@ function GenerateNewQRCode() {
     }
   };
   const openImage = () => {
-    // Replace 'specificPath' and 'specificImageName' with your actual path and image name
-    const specificPath = "../public/";
-    const specificImageName = orderID + "_qr.png"
-    window.open(`${specificPath}${specificImageName}`, '_blank');
+    const path = orderID + "_qr.png"
+    window.open(path, '_blank');
   };
 
   const handleSubmit = (e) => {
