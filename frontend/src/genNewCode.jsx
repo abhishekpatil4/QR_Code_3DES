@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
+import config from "./index.js";
 
 function GenerateNewQRCode() {
   const [orderID, setOrderID] = useState("");
   const [receiverID, setReceiverID] = useState("");
   const [isImagePresent, setIsImagePresent] = useState(false);
+  const renderApi = config.backendEndpoint;
 
   const handleGenerate = async () => {
     // Send the orderID to your Node.js server for encryption
-    const response = await fetch('http://localhost:3000/api/encrypt-link', {
+    const response = await fetch(renderApi + '/api/encrypt-link', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -17,13 +19,9 @@ function GenerateNewQRCode() {
 
     if (response.ok) {
       console.log('Data sent to backend');
-
-      const specificPath = "../public/";
-      const specificImageName = orderID + "_qr.png"
-      // Create an Image object and set its src
+      const path = orderID + "_qr.png"
       const image = new Image();
-      image.src = `${specificPath}${specificImageName}`;
-      console.log(image.scr);
+      image.src = path;
       // When the image loads, enable the download button
       image.onload = () => {
         setIsImagePresent(true);

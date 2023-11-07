@@ -92,13 +92,10 @@ function generateRandomString(length) {
 app.post('/api/encrypt-link', (req, res) => {
   const orderID = req.body.orderID; // Access the correct property
   const receiverID = req.body.receiverID;
-  console.log('Data from frontend => OrderID: ', orderID);
-  console.log('Data from frontend => ReceiverID: ', receiverID);
+  
   const secretkey = generateRandomString(10);
   const randomStr = generateRandomString(5);
-  console.log('Data generated at backend => Secretkey: ', secretkey);
-  console.log('Data generated at backend => RandomStr: ', randomStr);
-
+  
   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
   const encryptedLink = encrypt3DES(randomStr, encryptionKey);
 
@@ -114,8 +111,6 @@ app.post('/api/encrypt-link', (req, res) => {
     } else {
       console.log('QR code generated as encrypted_qr.png');
       res.json({ message: 'Link encrypted and QR code generated successfully' });
-      // const imageDataBuffer = fs.readFileSync('../frontend/public/' + orderID + '_qr.png');
-      // insertData(orderID, receiverID, secretkey, randomStr, imageDataBuffer, encryptedLink);
       const localPath = "../public/" + orderID + '_qr.png';
       insertData(orderID, receiverID, secretkey, randomStr, localPath, encryptedLink);
     }

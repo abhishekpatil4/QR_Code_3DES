@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
+import config from "./index.js";
 
 function CheckStatus() {
     const [orders, setOrders] = useState([]);
     const [error, setError] = useState(null);
     const [imageData, setImageData] = useState(null);
+    const renderApi = config.backendEndpoint;
 
     useEffect(() => {
-        fetch('http://localhost:3000/api/all-orders')
+        fetch(renderApi + '/api/all-orders')
             .then((response) => {
                 if (!response.ok) {
                     throw new Error(`Network response was not ok (status ${response.status})`);
