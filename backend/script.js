@@ -77,6 +77,14 @@ function encrypt3DES(input, key) {
   return encrypted;
 }
 
+// 3DES decryption function
+function decrypt3DES(encrypted, key) {
+  const decipher = crypto.createDecipheriv('des-ede3', key, '');
+  let decrypted = decipher.update(encrypted, 'base64', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
+
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -166,9 +174,29 @@ app.get('/api/all-orders', async (req, res) => {
     console.error('Error retrieving all orders:', error);
     res.status(500).send('Error retrieving all orders');
   }
+});  
+
+app.get('/api/decrypt', async (req, res) => {
+  const { orderID, encryptedData } = req.body;
+  try {
+    const order = await Order.findOne({ orderID: orderID }).exec();
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
+    if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
+      return res.send('Correct decryption');
+    } else {
+      console.error('RandomStr does not match, intruder detected!');
+      return res.status(400).send('RandomStr does not match, intruder detected!');
+    }
+  } catch (error) {
+    console.error('RandomStr does not match, intruder detected!');
+    res.status(500).send('RandomStr does not match, intruder detected!');
+  }
 });
 
-module.exports = { getOrderDataByOrderID, Order };
+module.exports = { getOrderDataByOrderID, Order };          
 
 app.listen(process.env.PORT || port, () => {
   console.log(`Server is running on port ${port}`);
