@@ -149,6 +149,28 @@ app.post('/api/update-status', async (req, res) => {
   }
 });
 
+app.post('/api/update-status/:orderID/:randomStr', async (req, res) => {
+  const orderID = req.params.orderID;
+  const randomStr = req.params.randomStr;
+  try {
+    const order = await Order.findOne({ orderID }).exec();
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    if (order.randomStr === randomStr) {
+      order.received = true;
+      await order.save(); 
+      return res.send('Status updated to true');
+    } else {
+      console.error('RandomStr does not match.');
+      return res.status(400).send('RandomStr does not match.');
+    }
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).send('Error updating status');
+  }
+});
+
 app.get('/api/all-orders', async (req, res) => {
   try {
     let orders = await Order.find().exec();
