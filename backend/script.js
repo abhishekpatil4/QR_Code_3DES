@@ -224,7 +224,7 @@ app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
   }
 });
 
-app.get('/api/verify/:orderID/:encryptedData/:key', async (req, res) => {
+app.post('/api/verify/:orderID/:encryptedData/:key', async (req, res) => {
   const orderID = req.params.orderID;
   const encryptedData = req.params.encryptedData;
   const key = req.params.encryptedData;
