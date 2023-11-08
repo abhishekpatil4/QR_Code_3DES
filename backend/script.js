@@ -201,6 +201,27 @@ app.get('/api/decrypt', async (req, res) => {
   }
 });
 
+app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
+  const orderID = req.params.orderID;
+  const encryptedData = req.params.randomStr;
+  try {
+    const order = await Order.findOne({ orderID: orderID }).exec();
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
+    if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
+      return res.send(order.randomStr);
+    } else {
+      console.error('RandomStr does not match, intruder detected!');
+      return res.status(400).send('RandomStr does not match, intruder detected!');
+    }
+  } catch (error) {
+    console.error('RandomStr does not match, intruder detected!');
+    res.status(500).send('RandomStr does not match, intruder detected!');
+  }
+});
+
 module.exports = { getOrderDataByOrderID, Order };          
 
 app.listen(process.env.PORT || port, () => {
