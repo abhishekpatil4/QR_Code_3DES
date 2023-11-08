@@ -168,7 +168,7 @@ app.get('/api/decrypt', async (req, res) => {
     }
     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
-      return res.send('Correct decryption');
+      return res.send(order.randomStr);
     } else {
       console.error('RandomStr does not match, intruder detected!');
       return res.status(400).send('RandomStr does not match, intruder detected!');
