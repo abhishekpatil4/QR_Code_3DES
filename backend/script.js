@@ -97,7 +97,7 @@ app.post('/api/encrypt-link', (req, res) => {
 
   //QR-Code Generation
   const path = '../frontend/public/' + orderID + '_qr.png';
-  encryptedLink = orderID + '::' + encryptedLink;
+  encryptedLink = orderID + ' ' + encryptedLink;
   qr.toFile(path, encryptedLink, {
     errorCorrectionLevel: 'H', // High error correction
     type: 'png', // PNG format
