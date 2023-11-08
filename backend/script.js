@@ -203,7 +203,7 @@ app.get('/api/decrypt', async (req, res) => {
 
 app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
   const orderID = req.params.orderID;
-  const encryptedData = req.params.randomStr;
+  const encryptedData = req.params.encryptedData;
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
     if (!order) {
