@@ -89,13 +89,15 @@ app.post('/api/encrypt-link', (req, res) => {
   const receiverID = req.body.receiverID;
   
   const secretkey = generateRandomString(10);
-  const randomStr = generateRandomString(5);
+  // const randomStr = generateRandomString(5);
+  const randomStr = "DemoString";
   
   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
-  const encryptedLink = encrypt3DES(randomStr, encryptionKey);
+  let encryptedLink = encrypt3DES(randomStr, encryptionKey);
 
   //QR-Code Generation
   const path = '../frontend/public/' + orderID + '_qr.png';
+  encryptedLink = orderID + '::' + encryptedLink;
   qr.toFile(path, encryptedLink, {
     errorCorrectionLevel: 'H', // High error correction
     type: 'png', // PNG format
@@ -212,6 +214,31 @@ app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
       return res.send(order.randomStr);
+    } else {
+      console.error('RandomStr does not match, intruder detected!');
+      return res.status(400).send('RandomStr does not match, intruder detected!');
+    }
+  } catch (error) {
+    console.error('RandomStr does not match, intruder detected!');
+    res.status(500).send('RandomStr does not match, intruder detected!');
+  }
+});
+
+app.get('/api/verify/:orderID/:encryptedData/:key', async (req, res) => {
+  const orderID = req.params.orderID;
+  const encryptedData = req.params.encryptedData;
+  const key = req.params.encryptedData;
+  try {
+    const order = await Order.findOne({ orderID: orderID }).exec();
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
+    if (order.randomStr === decrypt3DES(encryptedData, key)) {
+      //randomStr matches -> decrypted correctly
+      order.received = true;
+      await order.save(); 
+      return res.send('Status updated to true');
     } else {
       console.error('RandomStr does not match, intruder detected!');
       return res.status(400).send('RandomStr does not match, intruder detected!');
