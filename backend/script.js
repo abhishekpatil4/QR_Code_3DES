@@ -224,28 +224,55 @@ app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
   }
 });
 
-app.post('/api/verify/:orderID/:encryptedData/:key', async (req, res) => {
+app.post('/api/verify2/:orderID/:encryptedData/:key', async (req, res) => {
   const orderID = req.params.orderID;
   const encryptedData = req.params.encryptedData;
-  const key = req.params.encryptedData;
+  let key = req.params.key;
+  // console.log(orderID + ' ' + encryptedData + ' ' + key);
+  
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
     if (!order) {
       return res.status(404).send('Order not found');
     }
-    const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
+    key = Buffer.from(key.padEnd(24, '\0'));
+    // const some = Buffer.from(order.secretKey.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, key)) {
       //randomStr matches -> decrypted correctly
       order.received = true;
       await order.save(); 
       return res.send('Status updated to true');
     } else {
-      console.error('RandomStr does not match, intruder detected!');
-      return res.status(400).send('RandomStr does not match, intruder detected!');
+      console.error('Invalid data, intruder detected!');
+      return res.status(400).send('Invalid data, intruder detected!');
     }
   } catch (error) {
-    console.error('RandomStr does not match, intruder detected!');
-    res.status(500).send('RandomStr does not match, intruder detected!');
+    console.error('Invalid data, intruder detected!');
+    res.status(500).send('Invalid data, intruder detected!');
+  }
+});
+
+app.post('/api/verify', async (req, res) => {
+  let { orderID, encryptedData, key } = req.body;
+  try {
+    const order = await Order.findOne({ orderID: orderID }).exec();
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    key = Buffer.from(key.padEnd(24, '\0'));
+    // const some = Buffer.from(order.secretKey.padEnd(24, '\0'));
+    if (order.randomStr === decrypt3DES(encryptedData, key)) {
+      //randomStr matches -> decrypted correctly
+      order.received = true;
+      await order.save(); 
+      return res.send('Status updated to true');
+    } else {
+      console.error('Invalid data, intruder detected!');
+      return res.status(400).send('Invalid data, intruder detected!');
+    }
+  } catch (error) {
+    console.error('Invalid data, intruder detected!');
+    res.status(500).send('Invalid data, intruder detected!');
   }
 });
 
