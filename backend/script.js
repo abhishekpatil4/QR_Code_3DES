@@ -95,7 +95,6 @@ app.post('/api/newCustomer', (req, res) => {
     });
 });
 
-
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -108,38 +107,6 @@ function generateRandomString(length) {
   return result;
 }
 
-// app.post('/api/encrypt-link', (req, res) => {
-//   const orderID = req.body.orderID;
-//   const receiverID = req.body.receiverID;
-
-//   const secretkey = generateRandomString(10);
-//   const randomStr = "DemoString";
-
-//   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
-//   let encryptedLink = encrypt3DES(randomStr, encryptionKey);
-
-//   //QR-Code Generation
-//   const path = '../frontend/public/' + orderID + '_qr.png';
-//   encryptedLink = orderID + ' ' + encryptedLink;
-//   qr.toFile(path, encryptedLink, {
-//     errorCorrectionLevel: 'H', // High error correction
-//     type: 'png', // PNG format
-//   }, (err) => {
-//     if (err) {
-//       console.error('Error generating QR code:', err);
-//       res.status(500).json({ error: 'Error generating QR code' });
-//     } else {
-//       console.log('QR code generated as encrypted_qr.png');
-//       res.json({ message: 'Link encrypted and QR code generated successfully' });
-//       const localPath = "../public/" + orderID + '_qr.png';
-
-//       //encrypt secretKey using receivers public key and then store in DB
-
-//       insertData(orderID, receiverID, secretkey, randomStr, localPath, encryptedLink);
-//     }
-//   });
-// });
-
 app.post('/api/encrypt-link', async (req, res) => {
   const orderID = req.body.orderID;
   const receiverID = req.body.receiverID;
@@ -149,9 +116,10 @@ app.post('/api/encrypt-link', async (req, res) => {
     const customer = await Customer.findOne({ receiverID });
 
     if (!customer) {
+      console.log('Receiver ID not found');
       return res.status(400).json({ error: 'Receiver ID not found' });
     }
-
+    console.log(customer.publicKey);
     const secretKey = generateRandomString(10);
     const randomStr = "DemoString";
 

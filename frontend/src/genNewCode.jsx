@@ -52,7 +52,7 @@ function GenerateNewQRCode() {
       </div>
       <div class="mb-4">
         <label for="receiverID" class="form-label fw-medium fs-5">Receiver ID</label>
-        <input type="number" class="form-control" id="receiverID" value={receiverID} onChange={(e) => setReceiverID(e.target.value)} />
+        <input type="text" class="form-control" id="receiverID" value={receiverID} onChange={(e) => setReceiverID(e.target.value)} />
       </div>
       <button type="submit" class="btn fw-medium fs-5" id="generateBtn">Generate</button>
       <button type="button" class="btn fw-medium fs-5 mt-3" id="generateBtn" disabled={!isImagePresent} onClick={openImage}>Download</button>
