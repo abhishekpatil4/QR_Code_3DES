@@ -6,6 +6,7 @@ const cors = require('cors');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const { encrypt3DES, decrypt3DES } = require('./3des');
+const {generateKeyPair, encryptWithPublicKey, decryptWithPrivateKey} = require('./rsa');
 
 //express
 const app = express();
@@ -63,18 +64,30 @@ function insertData(order_id, receiver_id, secret_key, random_str, imagePath, en
 }
 
 app.post('/api/newCustomer', (req, res) => {
-  const { receiver_id, public_key } = req.body;
-  if (!receiver_id || !public_key) {
-    return res.status(400).json({ error: 'Both receiver_id and public_key are required.' });
+  const { receiver_id } = req.body;
+  if (!receiver_id) {
+    return res.status(400).json({ error: 'Please enter receiver ID' });
   }
+
+  //generating new keypair using RSA
+  const keyPair = generateKeyPair();
+  const public_key = keyPair.publicKey;
+  const private_key = keyPair.privateKey;
+
   const newCustomer = new Customer({
     receiverID: receiver_id,
     publicKey: public_key,
   });
+
   newCustomer.save()
     .then((result) => {
       console.log('Customer Data inserted with Mongo ID:', result._id);
-      res.status(201).json({ message: 'Customer data inserted successfully.' });
+      res.status(201).json({ 
+        message: 'Customer data inserted successfully.',
+        receiverID: receiver_id,
+        publicKey: public_key,
+        privateKey: private_key
+      });
     })
     .catch((error) => {
       console.error('Error inserting customer data:', error);
