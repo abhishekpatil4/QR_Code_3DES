@@ -33,7 +33,13 @@ const orderSchema = new mongoose.Schema({
   encryptedData: String
 });
 
+const customerSchema = new mongoose.Schema({
+  receiverID: String,
+  publicKey: String,
+});
+
 const Order = mongoose.model('Order', orderSchema);
+const Customer = mongoose.model('Customer', customerSchema);
 
 function insertData(order_id, receiver_id, secret_key, random_str, imagePath, encryptedLink) {
   const newOrder = new Order({
@@ -54,23 +60,43 @@ function insertData(order_id, receiver_id, secret_key, random_str, imagePath, en
     .catch((error) => {
       console.error('Error inserting order:', error);
     });
-
 }
+
+app.post('/api/newCustomer', (req, res) => {
+  const { receiver_id, public_key } = req.body;
+  if (!receiver_id || !public_key) {
+    return res.status(400).json({ error: 'Both receiver_id and public_key are required.' });
+  }
+  const newCustomer = new Customer({
+    receiverID: receiver_id,
+    publicKey: public_key,
+  });
+  newCustomer.save()
+    .then((result) => {
+      console.log('Customer Data inserted with Mongo ID:', result._id);
+      res.status(201).json({ message: 'Customer data inserted successfully.' });
+    })
+    .catch((error) => {
+      console.error('Error inserting customer data:', error);
+      res.status(500).json({ error: 'Internal server error.' });
+    });
+});
+
 
 //functions and API endpoints
-async function getOrderDataByOrderID(orderID) {
-  try {
-    const order = await Order.findOne({ orderID: orderID }).exec();
+// async function getOrderDataByOrderID(orderID) {
+//   try {
+//     const order = await Order.findOne({ orderID: orderID }).exec();
 
-    if (order) {
-      console.log('Order found:', order);
-    } else {
-      console.log('Order not found.');
-    }
-  } catch (error) {
-    console.error('Error retrieving order data:', error);
-  }
-}
+//     if (order) {
+//       console.log('Order found:', order);
+//     } else {
+//       console.log('Order not found.');
+//     }
+//   } catch (error) {
+//     console.error('Error retrieving order data:', error);
+//   }
+// }
 
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -116,64 +142,64 @@ app.post('/api/encrypt-link', (req, res) => {
   });
 });
 
-app.get('/api/get-image/:orderID', async (req, res) => {
-  const orderID = req.params.orderID;
-  try {
-    const order = await Order.findOne({ orderID: orderID }).exec();
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-    console.log('Fetched image from db');
-    res.contentType('image/jpeg');
-    res.send(order.imageData);
-  } catch (error) {
-    console.error('Error retrieving order with image:', error);
-    res.status(500).send('Error retrieving order with image');
-  }
-});
+// app.get('/api/get-image/:orderID', async (req, res) => {
+//   const orderID = req.params.orderID;
+//   try {
+//     const order = await Order.findOne({ orderID: orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     console.log('Fetched image from db');
+//     res.contentType('image/jpeg');
+//     res.send(order.imageData);
+//   } catch (error) {
+//     console.error('Error retrieving order with image:', error);
+//     res.status(500).send('Error retrieving order with image');
+//   }
+// });
 
-app.post('/api/update-status', async (req, res) => {
-  const { orderID, randomStr } = req.body;
-  try {
-    const order = await Order.findOne({ orderID }).exec();
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-    if (order.randomStr === randomStr) {
-      order.received = true;
-      await order.save();
-      return res.send('Status updated to true');
-    } else {
-      console.error('RandomStr does not match.');
-      return res.status(400).send('RandomStr does not match.');
-    }
-  } catch (error) {
-    console.error('Error updating status:', error);
-    res.status(500).send('Error updating status');
-  }
-});
+// app.post('/api/update-status', async (req, res) => {
+//   const { orderID, randomStr } = req.body;
+//   try {
+//     const order = await Order.findOne({ orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     if (order.randomStr === randomStr) {
+//       order.received = true;
+//       await order.save();
+//       return res.send('Status updated to true');
+//     } else {
+//       console.error('RandomStr does not match.');
+//       return res.status(400).send('RandomStr does not match.');
+//     }
+//   } catch (error) {
+//     console.error('Error updating status:', error);
+//     res.status(500).send('Error updating status');
+//   }
+// });
 
-app.post('/api/update-status/:orderID/:randomStr', async (req, res) => {
-  const orderID = req.params.orderID;
-  const randomStr = req.params.randomStr;
-  try {
-    const order = await Order.findOne({ orderID }).exec();
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-    if (order.randomStr === randomStr) {
-      order.received = true;
-      await order.save();
-      return res.send('Status updated to true');
-    } else {
-      console.error('RandomStr does not match.');
-      return res.status(400).send('RandomStr does not match.');
-    }
-  } catch (error) {
-    console.error('Error updating status:', error);
-    res.status(500).send('Error updating status');
-  }
-});
+// app.post('/api/update-status/:orderID/:randomStr', async (req, res) => {
+//   const orderID = req.params.orderID;
+//   const randomStr = req.params.randomStr;
+//   try {
+//     const order = await Order.findOne({ orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     if (order.randomStr === randomStr) {
+//       order.received = true;
+//       await order.save();
+//       return res.send('Status updated to true');
+//     } else {
+//       console.error('RandomStr does not match.');
+//       return res.status(400).send('RandomStr does not match.');
+//     }
+//   } catch (error) {
+//     console.error('Error updating status:', error);
+//     res.status(500).send('Error updating status');
+//   }
+// });
 
 app.get('/api/all-orders', async (req, res) => {
   try {
@@ -185,28 +211,25 @@ app.get('/api/all-orders', async (req, res) => {
   }
 });
 
-app.get('/api/decrypt', async (req, res) => {
-  const { orderID, encryptedData } = req.body;
-  try {
-    const order = await Order.findOne({ orderID: orderID }).exec();
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-
-    //take the secretKey, decrypt 
-
-    const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
-    if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
-      return res.send(order.randomStr);
-    } else {
-      console.error('RandomStr does not match, intruder detected!');
-      return res.status(400).send('RandomStr does not match, intruder detected!');
-    }
-  } catch (error) {
-    console.error('RandomStr does not match, intruder detected!');
-    res.status(500).send('RandomStr does not match, intruder detected!');
-  }
-});
+// app.get('/api/decrypt', async (req, res) => {
+//   const { orderID, encryptedData } = req.body;
+//   try {
+//     const order = await Order.findOne({ orderID: orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
+//     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
+//       return res.send(order.randomStr);
+//     } else {
+//       console.error('RandomStr does not match, intruder detected!');
+//       return res.status(400).send('RandomStr does not match, intruder detected!');
+//     }
+//   } catch (error) {
+//     console.error('RandomStr does not match, intruder detected!');
+//     res.status(500).send('RandomStr does not match, intruder detected!');
+//   }
+// });
 
 // app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
 //   const orderID = req.params.orderID;
@@ -299,7 +322,7 @@ app.get('/api/getSecretKey', async (req, res) => {
 });
 
 
-module.exports = { getOrderDataByOrderID, Order };
+// module.exports = { getOrderDataByOrderID, Order };
 
 app.listen(process.env.PORT || port, () => {
   console.log(`Server is running on port ${port}`);
