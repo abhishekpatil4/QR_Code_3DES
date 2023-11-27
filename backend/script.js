@@ -6,7 +6,7 @@ const cors = require('cors');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const { encrypt3DES, decrypt3DES } = require('./3des');
-const {generateKeyPair, encryptWithPublicKey, decryptWithPrivateKey} = require('./rsa');
+const { generateKeyPair, encryptWithPublicKey, decryptWithPrivateKey } = require('./rsa');
 
 //express
 const app = express();
@@ -82,7 +82,7 @@ app.post('/api/newCustomer', (req, res) => {
   newCustomer.save()
     .then((result) => {
       console.log('Customer Data inserted with Mongo ID:', result._id);
-      res.status(201).json({ 
+      res.status(201).json({
         message: 'Customer data inserted successfully.',
         receiverID: receiver_id,
         publicKey: public_key,
@@ -96,21 +96,6 @@ app.post('/api/newCustomer', (req, res) => {
 });
 
 
-//functions and API endpoints
-// async function getOrderDataByOrderID(orderID) {
-//   try {
-//     const order = await Order.findOne({ orderID: orderID }).exec();
-
-//     if (order) {
-//       console.log('Order found:', order);
-//     } else {
-//       console.log('Order not found.');
-//     }
-//   } catch (error) {
-//     console.error('Error retrieving order data:', error);
-//   }
-// }
-
 function generateRandomString(length) {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let result = '';
@@ -123,96 +108,83 @@ function generateRandomString(length) {
   return result;
 }
 
-app.post('/api/encrypt-link', (req, res) => {
+// app.post('/api/encrypt-link', (req, res) => {
+//   const orderID = req.body.orderID;
+//   const receiverID = req.body.receiverID;
+
+//   const secretkey = generateRandomString(10);
+//   const randomStr = "DemoString";
+
+//   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
+//   let encryptedLink = encrypt3DES(randomStr, encryptionKey);
+
+//   //QR-Code Generation
+//   const path = '../frontend/public/' + orderID + '_qr.png';
+//   encryptedLink = orderID + ' ' + encryptedLink;
+//   qr.toFile(path, encryptedLink, {
+//     errorCorrectionLevel: 'H', // High error correction
+//     type: 'png', // PNG format
+//   }, (err) => {
+//     if (err) {
+//       console.error('Error generating QR code:', err);
+//       res.status(500).json({ error: 'Error generating QR code' });
+//     } else {
+//       console.log('QR code generated as encrypted_qr.png');
+//       res.json({ message: 'Link encrypted and QR code generated successfully' });
+//       const localPath = "../public/" + orderID + '_qr.png';
+
+//       //encrypt secretKey using receivers public key and then store in DB
+
+//       insertData(orderID, receiverID, secretkey, randomStr, localPath, encryptedLink);
+//     }
+//   });
+// });
+
+app.post('/api/encrypt-link', async (req, res) => {
   const orderID = req.body.orderID;
   const receiverID = req.body.receiverID;
 
-  const secretkey = generateRandomString(10);
-  const randomStr = "DemoString";
+  try {
+    // Check if the receiverID exists in the database
+    const customer = await Customer.findOne({ receiverID });
 
-  const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
-  let encryptedLink = encrypt3DES(randomStr, encryptionKey);
-
-  //QR-Code Generation
-  const path = '../frontend/public/' + orderID + '_qr.png';
-  encryptedLink = orderID + ' ' + encryptedLink;
-  qr.toFile(path, encryptedLink, {
-    errorCorrectionLevel: 'H', // High error correction
-    type: 'png', // PNG format
-  }, (err) => {
-    if (err) {
-      console.error('Error generating QR code:', err);
-      res.status(500).json({ error: 'Error generating QR code' });
-    } else {
-      console.log('QR code generated as encrypted_qr.png');
-      res.json({ message: 'Link encrypted and QR code generated successfully' });
-      const localPath = "../public/" + orderID + '_qr.png';
-
-      //encrypt secretKey using receivers public key and then store in DB
-
-      insertData(orderID, receiverID, secretkey, randomStr, localPath, encryptedLink);
+    if (!customer) {
+      return res.status(400).json({ error: 'Receiver ID not found' });
     }
-  });
+
+    const secretKey = generateRandomString(10);
+    const randomStr = "DemoString";
+
+    // Encrypt the secretKey using the receiver's public key
+    const encryptedSecretKey = encryptWithPublicKey(customer.publicKey, secretKey);
+
+    const encryptionKey = Buffer.from(secretKey.padEnd(24, '\0'));
+    let encryptedLink = encrypt3DES(randomStr, encryptionKey);
+
+    // QR-Code Generation
+    const path = '../frontend/public/' + orderID + '_qr.png';
+    encryptedLink = orderID + ' ' + encryptedLink;
+    qr.toFile(path, encryptedLink, {
+      errorCorrectionLevel: 'H', // High error correction
+      type: 'png', // PNG format
+    }, (err) => {
+      if (err) {
+        console.error('Error generating QR code:', err);
+        res.status(500).json({ error: 'Error generating QR code' });
+      } else {
+        console.log('QR code generated as encrypted_qr.png');
+        res.json({ message: 'Link encrypted and QR code generated successfully' });
+        const localPath = "../public/" + orderID + '_qr.png';
+
+        // Store encrypted secretKey in the database
+        insertData(orderID, receiverID, encryptedSecretKey, randomStr, localPath, encryptedLink);
+      }
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
-
-// app.get('/api/get-image/:orderID', async (req, res) => {
-//   const orderID = req.params.orderID;
-//   try {
-//     const order = await Order.findOne({ orderID: orderID }).exec();
-//     if (!order) {
-//       return res.status(404).send('Order not found');
-//     }
-//     console.log('Fetched image from db');
-//     res.contentType('image/jpeg');
-//     res.send(order.imageData);
-//   } catch (error) {
-//     console.error('Error retrieving order with image:', error);
-//     res.status(500).send('Error retrieving order with image');
-//   }
-// });
-
-// app.post('/api/update-status', async (req, res) => {
-//   const { orderID, randomStr } = req.body;
-//   try {
-//     const order = await Order.findOne({ orderID }).exec();
-//     if (!order) {
-//       return res.status(404).send('Order not found');
-//     }
-//     if (order.randomStr === randomStr) {
-//       order.received = true;
-//       await order.save();
-//       return res.send('Status updated to true');
-//     } else {
-//       console.error('RandomStr does not match.');
-//       return res.status(400).send('RandomStr does not match.');
-//     }
-//   } catch (error) {
-//     console.error('Error updating status:', error);
-//     res.status(500).send('Error updating status');
-//   }
-// });
-
-// app.post('/api/update-status/:orderID/:randomStr', async (req, res) => {
-//   const orderID = req.params.orderID;
-//   const randomStr = req.params.randomStr;
-//   try {
-//     const order = await Order.findOne({ orderID }).exec();
-//     if (!order) {
-//       return res.status(404).send('Order not found');
-//     }
-//     if (order.randomStr === randomStr) {
-//       order.received = true;
-//       await order.save();
-//       return res.send('Status updated to true');
-//     } else {
-//       console.error('RandomStr does not match.');
-//       return res.status(400).send('RandomStr does not match.');
-//     }
-//   } catch (error) {
-//     console.error('Error updating status:', error);
-//     res.status(500).send('Error updating status');
-//   }
-// });
 
 app.get('/api/all-orders', async (req, res) => {
   try {
@@ -223,75 +195,6 @@ app.get('/api/all-orders', async (req, res) => {
     res.status(500).send('Error retrieving all orders');
   }
 });
-
-// app.get('/api/decrypt', async (req, res) => {
-//   const { orderID, encryptedData } = req.body;
-//   try {
-//     const order = await Order.findOne({ orderID: orderID }).exec();
-//     if (!order) {
-//       return res.status(404).send('Order not found');
-//     }
-//     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
-//     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
-//       return res.send(order.randomStr);
-//     } else {
-//       console.error('RandomStr does not match, intruder detected!');
-//       return res.status(400).send('RandomStr does not match, intruder detected!');
-//     }
-//   } catch (error) {
-//     console.error('RandomStr does not match, intruder detected!');
-//     res.status(500).send('RandomStr does not match, intruder detected!');
-//   }
-// });
-
-// app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
-//   const orderID = req.params.orderID;
-//   const encryptedData = req.params.encryptedData;
-//   try {
-//     const order = await Order.findOne({ orderID: orderID }).exec();
-//     if (!order) {
-//       return res.status(404).send('Order not found');
-//     }
-//     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
-//     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
-//       return res.send(order.randomStr);
-//     } else {
-//       console.error('RandomStr does not match, intruder detected!');
-//       return res.status(400).send('RandomStr does not match, intruder detected!');
-//     }
-//   } catch (error) {
-//     console.error('RandomStr does not match, intruder detected!');
-//     res.status(500).send('RandomStr does not match, intruder detected!');
-//   }
-// });
-
-// app.post('/api/verify2/:orderID/:encryptedData/:key', async (req, res) => {
-//   const orderID = req.params.orderID;
-//   const encryptedData = req.params.encryptedData;
-//   let key = req.params.key;
-//   // console.log(orderID + ' ' + encryptedData + ' ' + key);
-
-//   try {
-//     const order = await Order.findOne({ orderID: orderID }).exec();
-//     if (!order) {
-//       return res.status(404).send('Order not found');
-//     }
-//     key = Buffer.from(key.padEnd(24, '\0'));
-//     // const some = Buffer.from(order.secretKey.padEnd(24, '\0'));
-//     if (order.randomStr === decrypt3DES(encryptedData, key)) {
-//       //randomStr matches -> decrypted correctly
-//       order.received = true;
-//       await order.save(); 
-//       return res.send('Status updated to true');
-//     } else {
-//       console.error('Invalid data, intruder detected!');
-//       return res.status(400).send('Invalid data, intruder detected!');
-//     }
-//   } catch (error) {
-//     console.error('Invalid data, intruder detected!');
-//     res.status(500).send('Invalid data, intruder detected!');
-//   }
-// });
 
 app.post('/api/verify', async (req, res) => {
   let { orderID, encryptedData, key } = req.body;
