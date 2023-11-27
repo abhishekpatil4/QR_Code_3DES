@@ -85,13 +85,12 @@ function generateRandomString(length) {
 }
 
 app.post('/api/encrypt-link', (req, res) => {
-  const orderID = req.body.orderID; 
+  const orderID = req.body.orderID;
   const receiverID = req.body.receiverID;
-  
+
   const secretkey = generateRandomString(10);
-  // const randomStr = generateRandomString(5);
   const randomStr = "DemoString";
-  
+
   const encryptionKey = Buffer.from(secretkey.padEnd(24, '\0'));
   let encryptedLink = encrypt3DES(randomStr, encryptionKey);
 
@@ -109,6 +108,9 @@ app.post('/api/encrypt-link', (req, res) => {
       console.log('QR code generated as encrypted_qr.png');
       res.json({ message: 'Link encrypted and QR code generated successfully' });
       const localPath = "../public/" + orderID + '_qr.png';
+
+      //encrypt secretKey using receivers public key and then store in DB
+
       insertData(orderID, receiverID, secretkey, randomStr, localPath, encryptedLink);
     }
   });
@@ -139,7 +141,7 @@ app.post('/api/update-status', async (req, res) => {
     }
     if (order.randomStr === randomStr) {
       order.received = true;
-      await order.save(); 
+      await order.save();
       return res.send('Status updated to true');
     } else {
       console.error('RandomStr does not match.');
@@ -161,7 +163,7 @@ app.post('/api/update-status/:orderID/:randomStr', async (req, res) => {
     }
     if (order.randomStr === randomStr) {
       order.received = true;
-      await order.save(); 
+      await order.save();
       return res.send('Status updated to true');
     } else {
       console.error('RandomStr does not match.');
@@ -181,7 +183,7 @@ app.get('/api/all-orders', async (req, res) => {
     console.error('Error retrieving all orders:', error);
     res.status(500).send('Error retrieving all orders');
   }
-});  
+});
 
 app.get('/api/decrypt', async (req, res) => {
   const { orderID, encryptedData } = req.body;
@@ -190,6 +192,9 @@ app.get('/api/decrypt', async (req, res) => {
     if (!order) {
       return res.status(404).send('Order not found');
     }
+
+    //take the secretKey, decrypt 
+
     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
       return res.send(order.randomStr);
@@ -203,54 +208,54 @@ app.get('/api/decrypt', async (req, res) => {
   }
 });
 
-app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
-  const orderID = req.params.orderID;
-  const encryptedData = req.params.encryptedData;
-  try {
-    const order = await Order.findOne({ orderID: orderID }).exec();
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-    const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
-    if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
-      return res.send(order.randomStr);
-    } else {
-      console.error('RandomStr does not match, intruder detected!');
-      return res.status(400).send('RandomStr does not match, intruder detected!');
-    }
-  } catch (error) {
-    console.error('RandomStr does not match, intruder detected!');
-    res.status(500).send('RandomStr does not match, intruder detected!');
-  }
-});
+// app.get('/api/decrypt/:orderID/:encryptedData', async (req, res) => {
+//   const orderID = req.params.orderID;
+//   const encryptedData = req.params.encryptedData;
+//   try {
+//     const order = await Order.findOne({ orderID: orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     const decryptionKey = Buffer.from(order.secretKey.padEnd(24, '\0'));
+//     if (order.randomStr === decrypt3DES(encryptedData, decryptionKey)) {
+//       return res.send(order.randomStr);
+//     } else {
+//       console.error('RandomStr does not match, intruder detected!');
+//       return res.status(400).send('RandomStr does not match, intruder detected!');
+//     }
+//   } catch (error) {
+//     console.error('RandomStr does not match, intruder detected!');
+//     res.status(500).send('RandomStr does not match, intruder detected!');
+//   }
+// });
 
-app.post('/api/verify2/:orderID/:encryptedData/:key', async (req, res) => {
-  const orderID = req.params.orderID;
-  const encryptedData = req.params.encryptedData;
-  let key = req.params.key;
-  // console.log(orderID + ' ' + encryptedData + ' ' + key);
-  
-  try {
-    const order = await Order.findOne({ orderID: orderID }).exec();
-    if (!order) {
-      return res.status(404).send('Order not found');
-    }
-    key = Buffer.from(key.padEnd(24, '\0'));
-    // const some = Buffer.from(order.secretKey.padEnd(24, '\0'));
-    if (order.randomStr === decrypt3DES(encryptedData, key)) {
-      //randomStr matches -> decrypted correctly
-      order.received = true;
-      await order.save(); 
-      return res.send('Status updated to true');
-    } else {
-      console.error('Invalid data, intruder detected!');
-      return res.status(400).send('Invalid data, intruder detected!');
-    }
-  } catch (error) {
-    console.error('Invalid data, intruder detected!');
-    res.status(500).send('Invalid data, intruder detected!');
-  }
-});
+// app.post('/api/verify2/:orderID/:encryptedData/:key', async (req, res) => {
+//   const orderID = req.params.orderID;
+//   const encryptedData = req.params.encryptedData;
+//   let key = req.params.key;
+//   // console.log(orderID + ' ' + encryptedData + ' ' + key);
+
+//   try {
+//     const order = await Order.findOne({ orderID: orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     key = Buffer.from(key.padEnd(24, '\0'));
+//     // const some = Buffer.from(order.secretKey.padEnd(24, '\0'));
+//     if (order.randomStr === decrypt3DES(encryptedData, key)) {
+//       //randomStr matches -> decrypted correctly
+//       order.received = true;
+//       await order.save(); 
+//       return res.send('Status updated to true');
+//     } else {
+//       console.error('Invalid data, intruder detected!');
+//       return res.status(400).send('Invalid data, intruder detected!');
+//     }
+//   } catch (error) {
+//     console.error('Invalid data, intruder detected!');
+//     res.status(500).send('Invalid data, intruder detected!');
+//   }
+// });
 
 app.post('/api/verify', async (req, res) => {
   let { orderID, encryptedData, key } = req.body;
@@ -260,11 +265,10 @@ app.post('/api/verify', async (req, res) => {
       return res.status(404).send('Order not found');
     }
     key = Buffer.from(key.padEnd(24, '\0'));
-    // const some = Buffer.from(order.secretKey.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, key)) {
       //randomStr matches -> decrypted correctly
       order.received = true;
-      await order.save(); 
+      await order.save();
       return res.send('Status updated to true');
     } else {
       console.error('Invalid data, intruder detected!');
@@ -276,7 +280,26 @@ app.post('/api/verify', async (req, res) => {
   }
 });
 
-module.exports = { getOrderDataByOrderID, Order };          
+app.get('/api/getSecretKey', async (req, res) => {
+  let { orderID } = req.body;
+  try {
+    const order = await Order.findOne({ orderID: orderID }).exec();
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    const secretKey = order.secretKey;
+    if (!secretKey) {
+      return res.status(404).send('Secret key not found for the order');
+    }
+    return res.json({ secretKey: secretKey });
+  } catch (error) {
+    console.error('Error retrieving secretKey:', error);
+    return res.status(500).send('Internal Server Error');
+  }
+});
+
+
+module.exports = { getOrderDataByOrderID, Order };
 
 app.listen(process.env.PORT || port, () => {
   console.log(`Server is running on port ${port}`);

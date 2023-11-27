@@ -9,22 +9,26 @@ a{
 
 .navLinks{
   margin: 0 15rem 0 15rem;
+  border-width: 3px;
+  border-color: #1c5890;
+  border-style: solid;
+  border-radius: 6px;
 }
 
 .navLinksInActive{
-  background-color: rgb(255, 212, 212);
+  background-color: #bddbff;
 }
 
 .navLinksActive{
-  background-color: rgb(251, 130, 130);
+  background-color: #83bbff;
 }
 
 .navLinks:hover{
-  background-color: rgb(251, 130, 130);
+  background-color: #83bbff;
 }
 
 #title u{
-  text-decoration-color: rgb(220,53,68);
+  text-decoration-color: #004C91;
   text-underline-offset: 15px;
 }
 
@@ -38,7 +42,7 @@ a{
 }
 
 #generateBtn{
-  background-color: rgb(220,53,68);
+  background-color: #004C91;
   color: white;
 }
 
@@ -48,4 +52,12 @@ input{
 
 button{
   min-width: 8rem;
+}
+
+table, th, td {
+  border: 3px solid #dbdcde;
+}
+
+table{
+  table-layout: fixed;
 }
