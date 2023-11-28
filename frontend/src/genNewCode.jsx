@@ -28,7 +28,16 @@ function GenerateNewQRCode() {
       };
     } else {
       console.error('Failed to send data to backend');
-      // Handle errors if the request is not successful.
+      
+      try {
+        const errorData = await response.json();
+        alert('Error from backend');
+        // Display the error message to the user (you can use a state variable for this)
+      } catch (error) {
+        alert('Error parsing JSON response');
+        // Handle any unexpected errors
+      }
+
     }
   };
   const openImage = () => {
