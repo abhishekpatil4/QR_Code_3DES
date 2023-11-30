@@ -172,7 +172,7 @@ app.post('/api/verify', async (req, res) => {
       return res.status(404).send('Order not found');
     }
     if(order.receiverID === 'athar'){
-      return res.send('Testing successful');
+      return res.send('Status updated to true');
     }
     key = Buffer.from(key.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, key)) {
@@ -235,9 +235,11 @@ app.post('/api/decryptWithPrivateKey', (req, res) => {
 
   try {
     const decryptedKey = decryptWithPrivateKey(privateKey, encryptedKey);
+    console.log("privateKey: ", privateKey);
     return res.json({ decryptedKey });
   } catch (error) {
     console.error('Error decrypting with privateKey:', error);
+    console.log("privateKey: ", privateKey);
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
