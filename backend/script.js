@@ -187,7 +187,25 @@ app.post('/api/verify', async (req, res) => {
   }
 });
 
-app.get('/api/getSecretKey', async (req, res) => {
+// app.get('/api/getSecretKey', async (req, res) => {
+//   let { orderID } = req.body;
+//   try {
+//     const order = await Order.findOne({ orderID: orderID }).exec();
+//     if (!order) {
+//       return res.status(404).send('Order not found');
+//     }
+//     const secretKey = order.secretKey;
+//     if (!secretKey) {
+//       return res.status(404).send('Secret key not found for the order');
+//     }
+//     return res.json({ secretKey: secretKey });
+//   } catch (error) {
+//     console.error('Error retrieving secretKey:', error);
+//     return res.status(500).send('Internal Server Error');
+//   }
+// });
+
+app.post('/api/getSecretKey', async (req, res) => {
   let { orderID } = req.body;
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
@@ -204,6 +222,7 @@ app.get('/api/getSecretKey', async (req, res) => {
     return res.status(500).send('Internal Server Error');
   }
 });
+
 
 
 // module.exports = { getOrderDataByOrderID, Order };
