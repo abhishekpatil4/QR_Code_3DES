@@ -146,6 +146,7 @@ app.post('/api/encrypt-link', async (req, res) => {
         const localPath = "../public/" + orderID + '_qr.png';
 
         // Store encrypted secretKey in the database
+        console.log('encryptedLink: ' + encryptedLink);
         insertData(orderID, receiverID, encryptedSecretKey, randomStr, localPath, encryptedLink);
       }
     });
@@ -214,6 +215,8 @@ app.post('/api/verify', async (req, res) => {
 
 app.post('/api/getSecretKey', async (req, res) => {
   let { orderID } = req.body;
+  // console.log('orderID: ' + orderID);
+  console.log('orderID: ' + orderID);
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
     if (!order) {
@@ -232,6 +235,8 @@ app.post('/api/getSecretKey', async (req, res) => {
 
 app.post('/api/decryptWithPrivateKey', (req, res) => {
   const { privateKey, encryptedKey } = req.body;
+  console.log("privateKey: ", privateKey);
+  console.log("encryptedKey: ", encryptedKey);
 
   if (!privateKey || !encryptedKey) {
     return res.status(400).json({ error: 'Both privateKey and encryptedKey are required.' });
