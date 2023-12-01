@@ -73,6 +73,7 @@ app.post('/api/newCustomer', (req, res) => {
   const keyPair = generateKeyPair();
   const public_key = keyPair.publicKey;
   const private_key = keyPair.privateKey;
+  console.log('Public Key: ', public_key);
 
   const newCustomer = new Customer({
     receiverID: receiver_id,
@@ -236,6 +237,7 @@ app.post('/api/decryptWithPrivateKey', (req, res) => {
   try {
     const decryptedKey = decryptWithPrivateKey(privateKey, encryptedKey);
     console.log("privateKey: ", privateKey);
+    console.log(res.json({ decryptedKey }));
     return res.json({ decryptedKey });
   } catch (error) {
     console.error('Error decrypting with privateKey:', error);
