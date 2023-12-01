@@ -167,14 +167,17 @@ app.get('/api/all-orders', async (req, res) => {
 
 app.post('/api/verify', async (req, res) => {
   let { orderID, encryptedData, key } = req.body;
+  console.log('orderID: ' + orderID);
+  console.log('encryptedData: ' + encryptedData);
+  console.log('key: ' + key);
   try {
     const order = await Order.findOne({ orderID: orderID }).exec();
     if (!order) {
       return res.status(404).send('Order not found');
     }
-    if(order.receiverID === 'athar'){
-      return res.send('Status updated to true');
-    }
+    // if(order.receiverID === 'athar'){
+    //   return res.send('Status updated to true');
+    // }
     key = Buffer.from(key.padEnd(24, '\0'));
     if (order.randomStr === decrypt3DES(encryptedData, key)) {
       //randomStr matches -> decrypted correctly
@@ -237,8 +240,7 @@ app.post('/api/decryptWithPrivateKey', (req, res) => {
   try {
     const decryptedKey = decryptWithPrivateKey(privateKey, encryptedKey);
     console.log("privateKey: ", privateKey);
-    console.log(res.json({ decryptedKey }));
-    return res.json({ decryptedKey });
+    return res.json({ decryptedKey: decryptedKey });
   } catch (error) {
     console.error('Error decrypting with privateKey:', error);
     console.log("privateKey: ", privateKey);
